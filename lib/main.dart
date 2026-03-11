@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-// import 'package:firebase_core/firebase_core.dart';
-// import 'firebase_options.dart'; 
-import 'features/auth/login_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart'; 
+import 'features/auth/presentation/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Descomenta la siguiente línea y los imports cuando hayas configurado Firebase
-  // await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const SmartSyncAdminApp());
 }
 
