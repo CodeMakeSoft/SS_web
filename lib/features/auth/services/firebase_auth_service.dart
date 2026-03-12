@@ -62,6 +62,26 @@ class FirebaseAuthService {
     }
   }
 
+  Future<String> getUserRole(User user) async {
+    try {
+      const List<String> sudoEmails = [
+        'emax03736@gmail.com',
+        'codemakesoft@gmail.com',
+      ];
+      if (user.email != null && sudoEmails.contains(user.email)) {
+        return 'sudo';
+      }
+
+      final doc = await _db.collection('users').doc(user.uid).get();
+      if (!doc.exists) return 'user'; 
+      
+      final String role = doc.data()?['role'] ?? 'user';
+      return role; 
+      
+    } catch (e) {
+      return 'user'; 
+    }
+  }
 
   Future<void> signOut() async {
     await _auth.signOut();
