@@ -19,6 +19,14 @@ class FirebaseAuthService {
     }
   }
 
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw Exception('No se pudo enviar el correo de recuperación.');
+    }
+  }
+
   Future<User?> signInWithGoogle() async {
     try {
       GoogleAuthProvider googleProvider = GoogleAuthProvider();

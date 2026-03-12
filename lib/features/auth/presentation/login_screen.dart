@@ -44,6 +44,25 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // --- Lógica de Restablecimiento ---
+  Future<void> _handlePasswordReset() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      _showError('Ingresa tu correo en la caja de arriba primero.');
+      return;
+    }
+    try {
+      await _authService.sendPasswordResetEmail(email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Correo de recuperación enviado.'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) _showError('Hubo un error al enviar el correo.');
+    }
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
@@ -88,7 +107,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: const TextStyle(color: Colors.white),
                 decoration: const InputDecoration(labelText: 'Contraseña', labelStyle: TextStyle(color: Colors.white54)),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 20),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: _isLoading ? null : _handlePasswordReset,
+                  child: const Text('¿Olvidaste tu contraseña?', style: TextStyle(color: Colors.blueAccent, fontSize: 12)),
+                ),
+              ),
+              const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 50,
