@@ -4,7 +4,7 @@ import '../auth/services/firebase_auth_service.dart';
 import '../auth/presentation/login_screen.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../users/users_screen.dart';
-// import '../events/events_screen.dart'; // <--- Lo crearemos después
+import '../events/events_live_map_screen.dart'; 
 import '../sudo_roles/sudo_roles_screen.dart'; 
 
 class MainLayout extends StatefulWidget {
@@ -56,7 +56,7 @@ class _MainLayoutState extends State<MainLayout> {
       case 1:
         return const UsersScreen(); // Check-in Kit/QR
       case 2:
-        return const Center(child: Text("Pantalla de Crear Carrera Eventos.")); // EventsScreen vacía
+        return const EventsLiveMapScreen(activeRaceId: 'race_beta_1');
       case 3:
         return const SudoRolesScreen(); // SudoRoles screen
       default:
