@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../auth/services/firebase_auth_service.dart';
 import '../auth/presentation/login_screen.dart';
-
-// (IMPORTA AQUÍ LUEGO TUS PANTALLAS CONFORME LAS VAYAS CREANDO)
 import '../dashboard/dashboard_screen.dart';
 import '../users/users_screen.dart';
 // import '../events/events_screen.dart'; // <--- Lo crearemos después
-// import '../sudo/sudo_roles_screen.dart'; // <--- El panel divino
+import '../sudo_roles/sudo_roles_screen.dart'; 
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -60,7 +58,7 @@ class _MainLayoutState extends State<MainLayout> {
       case 2:
         return const Center(child: Text("Pantalla de Crear Carrera Eventos.")); // EventsScreen vacía
       case 3:
-        return const Center(child: Text("Panel Sudo: Asignación de Franquicias (super_admin)")); // SudoRoles screen
+        return const SudoRolesScreen(); // SudoRoles screen
       default:
         return const DashboardScreen();
     }
