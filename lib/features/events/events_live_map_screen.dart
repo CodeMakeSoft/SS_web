@@ -15,7 +15,7 @@ class EventsLiveMapScreen extends StatefulWidget {
 class _EventsLiveMapScreenState extends State<EventsLiveMapScreen> {
   final MapController _mapController = MapController();
 
-  @override
+   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
@@ -31,37 +31,46 @@ class _EventsLiveMapScreenState extends State<EventsLiveMapScreen> {
           )
         ],
       ),
-      
-      // EL RADAR EN VIVO 
       body: StreamBuilder<QuerySnapshot>(
-        // Buscamos a TODOS los usuarios dentro de esta carrera particular en Firestore
         stream: FirebaseFirestore.instance
             .collection('races')
             .doc(widget.activeRaceId)
-            .collection('runner_locations') // La subcolección que creaste en el móvil
+            .collection('runner_locations')
             .snapshots(),
-            
         builder: (context, snapshot) {
           
           List<Marker> runnerMarkers = [];
+          List<DocumentSnapshot> docs = [];
 
-          // Si hay datos recibidos (alguien corriendo hoy)
           if (snapshot.hasData) {
-            final docs = snapshot.data!.docs;
-            
+            docs = snapshot.data!.docs;
             for (var doc in docs) {
               final data = doc.data() as Map<String, dynamic>;
-              // Firebase nos mandó un 'ultimo punto conocido'
               if (data['latitude'] != null && data['longitude'] != null) {
-                
                 runnerMarkers.add(
                   Marker(
                     point: LatLng(data['latitude'], data['longitude']),
-                    width: 40,
-                    height: 40,
-                    child: Tooltip( // Al pasar el mouse encima de la mosca...
-                      message: 'Corredor: ${doc.id}',
-                      child: const Icon(Icons.run_circle, color: Colors.blueAccent, size: 30),
+                    width: 60,
+                    height: 60,
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.black87,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            data['displayName'] ?? 'Runner', 
+                            style: const TextStyle(color: Colors.white, fontSize: 8),
+                          ),
+                        ),
+                        Icon(
+                          Icons.location_on, 
+                          color: (data['speed'] ?? 0) > 0.5 ? Colors.greenAccent : Colors.orangeAccent, 
+                          size: 30
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -69,21 +78,77 @@ class _EventsLiveMapScreenState extends State<EventsLiveMapScreen> {
             }
           }
 
-          // Pintamos el Mapa Crudo
-          return FlutterMap(
-            mapController: _mapController,
-            options: const MapOptions(
-              initialCenter: LatLng(19.4326, -99.1332), // Empieza en CDMX o donde quieras
-              initialZoom: 13.0,
-            ),
+          // AQUÍ EMPIEZA EL STACK DEL PUNTO 2
+          return Stack(
             children: [
-              // 1. La capa gráfica tipo cartografía oscura (Dark Mode)
-              TileLayer(
-                urlTemplate: 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png',
-                userAgentPackageName: 'com.codemakesoft.smartsync',
+              // Capa 1: El Mapa
+              FlutterMap(
+                mapController: _mapController,
+                options: const MapOptions(
+                  initialCenter: LatLng(19.4326, -99.1332), 
+                  initialZoom: 13.0,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.codemakesoft.smartsync',
+                  ),
+                  MarkerLayer(markers: runnerMarkers),
+                ],
               ),
-              // 2. Los pinchitos de los corredores moviéndose solos
-              MarkerLayer(markers: runnerMarkers),
+
+              // Capa 2: Panel Flotante a la derecha
+              Positioned(
+                right: 20,
+                top: 20,
+                bottom: 20,
+                child: Container(
+                  width: 250,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B).withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: Colors.white10),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10)],
+                  ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Text(
+                          "RADAR: ${docs.length} ACTIVOS", 
+                          style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)
+                        ),
+                      ),
+                      const Divider(color: Colors.white10),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: docs.length,
+                          itemBuilder: (context, index) {
+                            final data = docs[index].data() as Map<String, dynamic>;
+                            return ListTile(
+                              leading: const CircleAvatar(
+                                backgroundColor: Colors.blueAccent,
+                                child: Icon(Icons.person, size: 16, color: Colors.white),
+                              ),
+                              title: Text(data['displayName'] ?? 'Anónimo', 
+                                         style: const TextStyle(color: Colors.white, fontSize: 13)),
+                              subtitle: Text("${data['speed']?.toStringAsFixed(1) ?? '0'} km/h",
+                                            style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                              onTap: () {
+                                // Al tocar el nombre, el mapa vuela hacia el corredor
+                                _mapController.move(
+                                  LatLng(data['latitude'], data['longitude']), 
+                                  16.0
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           );
         },
